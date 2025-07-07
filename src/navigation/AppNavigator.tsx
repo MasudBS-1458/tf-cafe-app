@@ -14,7 +14,7 @@ const Stack = createStackNavigator<RootStackParamList>();
 
 const AppNavigator = () => {
   return (
-    <Stack.Navigator initialRouteName="Onboarding">
+    <Stack.Navigator initialRouteName="Main">
       <Stack.Screen
         name="Onboarding"
         component={SplashScreen}
