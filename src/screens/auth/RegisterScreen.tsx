@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ImageBackground, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-// import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../types/navigationTypes';
 
 const RegisterScreen: React.FC = () => {
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
 
@@ -70,7 +73,7 @@ const RegisterScreen: React.FC = () => {
             </View>
             <View style={styles.footer}>
               <Text style={styles.footerText}>Already have an account?</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
                 <Text style={styles.signUpText}>Login</Text>
               </TouchableOpacity>
             </View>
