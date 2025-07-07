@@ -10,22 +10,22 @@ export type BottomTabParamList = {
   Cart: undefined;
   Profile: undefined;
 };
-
 const Tab = createBottomTabNavigator<BottomTabParamList>();
-
 const BottomTabNavigator = () => {
   return (
     <Tab.Navigator
       screenOptions={{
         tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: '#8E8E93',
+        tabBarInactiveTintColor: '#333',
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: '#eaeded',
           borderTopWidth: 0,
           elevation: 8,
           shadowOpacity: 0.1,
           shadowRadius: 4,
           shadowOffset: { width: 0, height: -2 },
+          // borderRadius: 28,
+          // margin: 8
         },
         headerShown: false,
       }}
