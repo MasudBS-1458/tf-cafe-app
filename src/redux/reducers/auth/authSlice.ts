@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {
   AuthState,
   LoginCredentials,
@@ -29,8 +30,8 @@ export const registerUser = createAsyncThunk(
   async (userData: RegisterData, { rejectWithValue }) => {
     try {
       const response = await publicPost('/register', userData);
-      // Store email in localStorage
-      localStorage.setItem('otpVerificationEmail', userData.email);
+      // Store email in AsyncStorage
+      await AsyncStorage.setItem('otpVerificationEmail', userData.email);
       return response.data;
     } catch (error) {
       return rejectWithValue(handleAuthError(error));
@@ -43,8 +44,8 @@ export const verifyOtp = createAsyncThunk(
   async (otpData: VerifyOtpData, { rejectWithValue }) => {
     try {
       const response = await publicPost('/verify-otp', otpData);
-      // Clear the email from localStorage after successful verification
-      localStorage.removeItem('otpVerificationEmail');
+      // Clear the email from AsyncStorage after successful verification
+      await AsyncStorage.removeItem('otpVerificationEmail');
       return response.data;
     } catch (error) {
       return rejectWithValue(handleAuthError(error));
@@ -75,7 +76,7 @@ const authSlice = createSlice({
       state.isAuthenticated = 'loading';
       state.errorMessage = null;
       state.registeredEmail = null;
-      localStorage.removeItem('otpVerificationEmail');
+      AsyncStorage.removeItem('otpVerificationEmail');
     },
     clearError: (state) => {
       state.errorMessage = null;
@@ -98,7 +99,7 @@ const authSlice = createSlice({
       .addCase(registerUser.rejected, (state, action) => {
         state.isOtpSent = 'failed';
         state.errorMessage = action.payload as string;
-        localStorage.removeItem('otpVerificationEmail');
+        AsyncStorage.removeItem('otpVerificationEmail');
       })
       // OTP verification cases
       .addCase(verifyOtp.pending, (state) => {

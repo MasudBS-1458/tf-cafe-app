@@ -7,10 +7,10 @@ import { useSelector } from 'react-redux';
 
 const MainNavigator = () => {
   const { isAuthenticated } = useSelector((state: RootState) => state.user);
-
+  const isLoggedIn = isAuthenticated === 'success';
   return (
     <NavigationContainer>
-      {isAuthenticated === 'success' ? <AppNavigator /> : <AuthNavigator />}
+      {isLoggedIn ? <AppNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   );
 };
