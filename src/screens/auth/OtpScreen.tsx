@@ -14,7 +14,15 @@ import {
   TextInputKeyPressEventData,
   TextInput as RNTextInput,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../types/navigationTypes';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../redux/store';
+import { clearOtpVerifiedState } from '../../redux/reducers/auth/authSlice';
 const OtpScreen: React.FC = () => {
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const dispatch = useDispatch<AppDispatch>();
   const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
   const [timer, setTimer] = useState<number>(60);
   const [isResendDisabled, setIsResendDisabled] = useState<boolean>(true);
@@ -69,11 +77,14 @@ const OtpScreen: React.FC = () => {
     inputRefs.current[0]?.focus();
     Alert.alert('OTP Sent', 'A new OTP has been sent to your phone');
   };
-
+  const handleGoBack = () => {
+    dispatch(clearOtpVerifiedState())
+    navigation.navigate('Register')
+  }
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity >
+        <TouchableOpacity onPress={handleGoBack}>
           <Text >Go Back</Text>
         </TouchableOpacity>
         <View style={{ width: 24 }} />
