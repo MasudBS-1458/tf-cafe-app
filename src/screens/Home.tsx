@@ -11,16 +11,16 @@ import {
 import { AppDispatch, RootState } from '../redux/store';
 import { useDispatch, useSelector } from 'react-redux';
 import FoodScreen from './foods/FoodScreen';
-
-
-
+import OffersScreen from './offers/OffersScreen';
 const HomeScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { isAuthenticated, user } = useSelector((state: RootState) => state.user);
-
   return (
     <SafeAreaView style={styles.container}>
-      <FoodScreen />
+      <ScrollView style={styles.scrollContainer}>
+        <OffersScreen />
+        <FoodScreen />
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -31,8 +31,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   scrollContainer: {
-    flexGrow: 1,
-    paddingHorizontal: 16,
+    flex: 1,
   },
   header: {
     marginVertical: 24,

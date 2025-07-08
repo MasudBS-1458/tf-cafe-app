@@ -5,12 +5,15 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import HomeScreen from '../screens/Home';
 import CartScreen from '../screens/cart/CartScreen';
 import ProfileScreen from '../screens/user/ProfileScreen';
+
 export type BottomTabParamList = {
   Home: undefined;
   Cart: undefined;
   Profile: undefined;
 };
+
 const Tab = createBottomTabNavigator<BottomTabParamList>();
+
 const BottomTabNavigator = () => {
   return (
     <Tab.Navigator
@@ -19,16 +22,11 @@ const BottomTabNavigator = () => {
         tabBarInactiveTintColor: '#333',
         tabBarStyle: {
           backgroundColor: 'white',
-
-          // borderTopWidth: 0,
-          // elevation: 8,
-          // shadowColor: '#000',
-          // shadowOpacity: 0.1,
-          // shadowRadius: 4,
-          // shadowOffset: {
-          //   width: 0,
-          //   height: -3,
-          // },
+        },
+        tabBarLabelStyle: {
+          fontSize: 14,
+          fontWeight: 'bold',
+          marginBottom: 5,
         },
         headerShown: false,
       }}
@@ -64,4 +62,5 @@ const BottomTabNavigator = () => {
     </Tab.Navigator>
   );
 };
+
 export default BottomTabNavigator;
