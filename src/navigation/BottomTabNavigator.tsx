@@ -18,14 +18,16 @@ const BottomTabNavigator = () => {
         tabBarActiveTintColor: '#007AFF',
         tabBarInactiveTintColor: '#333',
         tabBarStyle: {
-          backgroundColor: '#eaeded',
+          backgroundColor: 'white',
           borderTopWidth: 0,
           elevation: 8,
+          shadowColor: '#000',
           shadowOpacity: 0.1,
           shadowRadius: 4,
-          shadowOffset: { width: 0, height: -2 },
-          // borderRadius: 28,
-          // margin: 8
+          shadowOffset: {
+            width: 0,
+            height: -3, // Negative value will place shadow above the tab bar
+          },
         },
         headerShown: false,
       }}
