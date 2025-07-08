@@ -1,6 +1,5 @@
 import axios from "axios";
 const API_URL = "https://tr-cafe.onrender.com/api";
-// const API_URL = "https://tour-back-office.onrender.com/api";
 const config = {
   headers: {
     "Content-Type": "application/json",

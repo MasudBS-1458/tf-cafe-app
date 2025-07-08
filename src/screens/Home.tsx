@@ -5,15 +5,21 @@ import {
   StyleSheet,
   View,
   ScrollView,
+  TouchableOpacity,
+  Alert
 } from 'react-native';
-
+import { AppDispatch, RootState } from '../redux/store';
+import { useDispatch, useSelector } from 'react-redux';
+import FoodScreen from './foods/FoodScreen';
+import OffersScreen from './offers/OffersScreen';
 const HomeScreen = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.user);
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Welcome to the TR-Cafe</Text>
-        </View>
+      <ScrollView style={styles.scrollContainer}>
+        <OffersScreen />
+        <FoodScreen />
       </ScrollView>
     </SafeAreaView>
   );
@@ -22,11 +28,10 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: 'white',
   },
   scrollContainer: {
-    flexGrow: 1,
-    paddingHorizontal: 16,
+    flex: 1,
   },
   header: {
     marginVertical: 24,
@@ -36,24 +41,26 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: 'red',
+    marginBottom: 8,
   },
-  content: {
-    marginBottom: 24,
+  subtitle: {
+    fontSize: 18,
+    color: '#333',
+    marginBottom: 20,
   },
-  text: {
+  logoutButton: {
+    backgroundColor: '#E91E63',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginTop: 20,
+  },
+  logoutButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
     fontSize: 16,
-    lineHeight: 24,
-    color: '#444',
-    marginBottom: 16,
   },
-  moreText: {
-    marginTop: 8,
-  },
-  subText: {
-    fontSize: 14,
-    color: '#666',
-    fontStyle: 'italic',
-  },
+  // ... keep your existing styles
 });
 
 export default HomeScreen;

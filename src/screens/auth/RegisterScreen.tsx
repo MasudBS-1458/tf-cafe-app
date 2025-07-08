@@ -1,24 +1,32 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ImageBackground, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-// import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ImageBackground, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../types/navigationTypes';
+import { AppDispatch, RootState } from '../../redux/store';
+import { useDispatch, useSelector } from 'react-redux';
+import { registerUser } from '../../redux/reducers/auth/authSlice';
 
 const RegisterScreen: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-
+  const { isOtpSent, errorMessage, } = useSelector((state: RootState) => state.user);
+  const isLoading = isOtpSent === 'loading';
   const handleLogin = () => {
-    if (email.length !== 11) {
-      Alert.alert('Wrong Number', 'Pleas enter a 11 digit email number');
-      return;
-    }
-
-    if (password.length < 6) {
-      Alert.alert('Wrong Password', 'Password must be 6 characters');
-      return;
-    }
-
+    dispatch(registerUser({ email, password }));
   };
+  useEffect(() => {
+    if (isOtpSent === 'succeeded') {
+      navigation.navigate('VerifyOTP');
 
+    }
+    if (errorMessage) {
+      // console.log("error", errorMessage.error)
+      // Alert.alert('Error', errorMessage?.error);
+    }
+  }, [isOtpSent, navigation, errorMessage]);
   return (
     <SafeAreaView style={styles.container}>
       <ImageBackground
@@ -58,8 +66,16 @@ const RegisterScreen: React.FC = () => {
                   onChangeText={setPassword}
                 />
               </View>
-              <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-                <Text style={styles.loginButtonText}>Create</Text>
+              <TouchableOpacity
+                style={styles.loginButton}
+                onPress={handleLogin}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.loginButtonText}>Create Account</Text>
+                )}
               </TouchableOpacity>
               <TouchableOpacity style={styles.socialButton}>
                 <Text style={styles.socialButtonText}>Continue with Facebook</Text>
@@ -70,7 +86,7 @@ const RegisterScreen: React.FC = () => {
             </View>
             <View style={styles.footer}>
               <Text style={styles.footerText}>Already have an account?</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
                 <Text style={styles.signUpText}>Login</Text>
               </TouchableOpacity>
             </View>

@@ -1,25 +1,43 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ImageBackground, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+  ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+  Alert
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../../navigation/AppNavigator';
+import { RootStackParamList } from '../../types/navigationTypes';
+import { loginUser } from '../../redux/reducers/auth/authSlice';
+import { AppDispatch, RootState } from '../../redux/store';
+import { useDispatch, useSelector } from 'react-redux';
+
 const LoginScreen: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-
+  const { isAuthenticated, status } = useSelector((state: RootState) => state.user);
+  const isLoading = status === 'loading';
   const handleLogin = () => {
-    // if (email.length !== 11) {
-    //   Alert.alert('Wrong Number', 'Pleas enter a 11 digit email number');
-    //   return;
-    // }
-
-    // if (password.length < 6) {
-    //   Alert.alert('Wrong Password', 'Password must be 6 characters');
-    //   return;
-    // }
-    navigation.navigate('Main')
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter both email and password');
+      return;
+    }
+    dispatch(loginUser({ email, password }));
   };
+  useEffect(() => {
+    if (isAuthenticated === 'success') {
+      navigation.navigate('Main');
+    }
+  }, [isAuthenticated, navigation]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -36,11 +54,11 @@ const LoginScreen: React.FC = () => {
           <View style={styles.content}>
             <View style={styles.header}>
               <View style={styles.logoContainer}>
-                <View style={styles.logoCircle}>
-                </View>
+                <View style={styles.logoCircle} />
                 <Text style={styles.logoTitle}>TR-Cafe</Text>
               </View>
             </View>
+
             <View style={styles.form}>
               <View style={styles.inputContainer}>
                 <TextInput
@@ -49,8 +67,11 @@ const LoginScreen: React.FC = () => {
                   placeholderTextColor="#999"
                   value={email}
                   onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
                 />
               </View>
+
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.input}
@@ -58,33 +79,49 @@ const LoginScreen: React.FC = () => {
                   placeholderTextColor="#999"
                   value={password}
                   onChangeText={setPassword}
+                  secureTextEntry
                 />
               </View>
-              <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-                <Text style={styles.loginButtonText}>Login</Text>
+
+              <TouchableOpacity
+                style={styles.loginButton}
+                onPress={handleLogin}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.loginButtonText}>Login</Text>
+                )}
               </TouchableOpacity>
-              <TouchableOpacity style={styles.socialButton}>
+
+              <TouchableOpacity style={styles.socialButton} disabled={isLoading}>
                 <Text style={styles.socialButtonText}>Continue with Facebook</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.socialButton}>
+
+              <TouchableOpacity style={styles.socialButton} disabled={isLoading}>
                 <Text style={styles.socialButtonText}>Continue with Google</Text>
               </TouchableOpacity>
-              <TouchableOpacity>
+
+              <TouchableOpacity disabled={isLoading}>
                 <Text style={styles.forgotPassword}>Forgot Password?</Text>
               </TouchableOpacity>
             </View>
+
             <View style={styles.footer}>
               <Text style={styles.footerText}>Don't have an account?</Text>
-              <TouchableOpacity>
+              <TouchableOpacity disabled={isLoading} onPress={() => navigation.navigate('Register')}>
                 <Text style={styles.signUpText}>Sign Up</Text>
               </TouchableOpacity>
             </View>
           </View>
         </KeyboardAvoidingView>
       </ImageBackground>
-    </SafeAreaView >
+    </SafeAreaView>
   );
 };
+
+
 
 export default LoginScreen;
 
