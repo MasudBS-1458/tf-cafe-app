@@ -1,40 +1,36 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator, StyleSheet, Dimensions, TextInput } from 'react-native';
 import { useGetFoodsQuery } from '../../redux/reducers/foods/foodApi';
 import { setFilters } from '../../redux/reducers/foods/foodSlice';
 import { AppDispatch, RootState } from '../../redux/store';
 import { useDispatch, useSelector } from 'react-redux';
 
-const PRICE_RANGE_STEPS = [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
+const { width } = Dimensions.get('window');
+const CARD_MARGIN = 8;
+const CARD_WIDTH = (width - CARD_MARGIN * 3) / 2;
 
 const FoodScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
   const filters = useSelector((state: RootState) => state.foods.filters);
-  const [localPriceRange, setLocalPriceRange] = useState([filters.minPrice, filters.maxPrice]);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // RTK Query to fetch foods
   const { data: foods = [], isLoading, isError, error } = useGetFoodsQuery(filters);
 
-  const categories = ['All Categories', ...new Set(foods.map(food => food.category))];
+  const categories = ['All', ...new Set(foods.map(food => food.category))];
 
   const handleCategoryChange = (category: string) => {
     dispatch(setFilters({
       ...filters,
-      category: category === 'All Categories' ? '' : category
+      category: category === 'All' ? '' : category
     }));
   };
 
-  const handlePriceChange = (price: number, isMin: boolean) => {
-    const newRange = isMin
-      ? [price, localPriceRange[1]]
-      : [localPriceRange[0], price];
-
-    setLocalPriceRange(newRange);
+  const handleSearch = () => {
     dispatch(setFilters({
       ...filters,
-      minPrice: newRange[0],
-      maxPrice: newRange[1]
+      search: searchQuery
     }));
   };
 
@@ -43,10 +39,11 @@ const FoodScreen = () => {
       category: "",
       minPrice: 0,
       maxPrice: 1000,
-      sortBy: ""
+      sortBy: "",
+      search: ""
     };
     dispatch(setFilters(defaultFilters));
-    setLocalPriceRange([defaultFilters.minPrice, defaultFilters.maxPrice]);
+    setSearchQuery('');
   };
 
   const toggleFavorite = (id: string) => {
@@ -58,7 +55,7 @@ const FoodScreen = () => {
   if (isLoading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color="#000" />
       </View>
     );
   }
@@ -73,108 +70,67 @@ const FoodScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* Filter Section */}
-      <View style={styles.filterContainer}>
-        <Text style={styles.filterTitle}>Filters</Text>
+      {/* Search Input */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search foods..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onSubmitEditing={handleSearch}
+          returnKeyType="search"
+        />
+        <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+          <Text style={styles.searchButtonText}>Search</Text>
+        </TouchableOpacity>
+      </View>
 
-        {(filters.category || filters.minPrice !== 0 || filters.maxPrice !== 1000) && (
-          <TouchableOpacity onPress={resetFilters} style={styles.clearButton}>
-            <Text style={styles.clearButtonText}>Clear all</Text>
-          </TouchableOpacity>
-        )}
-
-        <Text style={styles.sectionTitle}>Categories</Text>
-        <ScrollView
+      {/* Categories Filter */}
+      <View style={styles.filterSection}>
+        <FlatList
           horizontal
+          data={categories}
+          keyExtractor={(item) => item}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.categoriesContainer}
-        >
-          {categories.map(category => (
+          renderItem={({ item }) => (
             <TouchableOpacity
-              key={category}
-              onPress={() => handleCategoryChange(category)}
+              key={item}
+              onPress={() => handleCategoryChange(item)}
               style={[
                 styles.categoryButton,
-                (filters.category === category ||
-                  (category === 'All Categories' && !filters.category)) && styles.selectedCategory
+                (filters.category === item || (item === 'All' && !filters.category)) &&
+                styles.selectedCategory
               ]}
             >
               <Text style={[
                 styles.categoryText,
-                (filters.category === category ||
-                  (category === 'All Categories' && !filters.category)) && styles.selectedCategoryText
+                (filters.category === item || (item === 'All' && !filters.category)) &&
+                styles.selectedCategoryText
               ]}>
-                {category}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        <Text style={styles.sectionTitle}>Minimum Price</Text>
-        <FlatList
-          horizontal
-          data={PRICE_RANGE_STEPS}
-          keyExtractor={(item) => item.toString()}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.priceListContainer}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => handlePriceChange(item, true)}
-              style={[
-                styles.priceButton,
-                localPriceRange[0] === item && styles.selectedPriceButton
-              ]}
-            >
-              <Text style={[
-                styles.priceText,
-                localPriceRange[0] === item && styles.selectedPriceText
-              ]}>
-                ৳{item}
-              </Text>
-            </TouchableOpacity>
-          )}
-        />
-
-        <Text style={styles.sectionTitle}>Maximum Price</Text>
-        <FlatList
-          horizontal
-          data={PRICE_RANGE_STEPS}
-          keyExtractor={(item) => item.toString()}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.priceListContainer}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => handlePriceChange(item, false)}
-              style={[
-                styles.priceButton,
-                localPriceRange[1] === item && styles.selectedPriceButton
-              ]}
-            >
-              <Text style={[
-                styles.priceText,
-                localPriceRange[1] === item && styles.selectedPriceText
-              ]}>
-                ৳{item}
+                {item}
               </Text>
             </TouchableOpacity>
           )}
         />
       </View>
 
-      {/* Food List */}
+      {/* Food Grid */}
       <FlatList
         data={foods}
+        numColumns={2}
         keyExtractor={(item) => item._id}
+        columnWrapperStyle={styles.columnWrapper}
         ListHeaderComponent={
           <Text style={styles.itemCount}>
-            {foods.length} {foods.length === 1 ? 'Item' : 'Items'}
+            {foods.length} {foods.length === 1 ? 'Item' : 'Items'} Found
           </Text>
         }
         ListEmptyComponent={
-          <View style={styles.center}>
+          <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>No items match your filters</Text>
             <TouchableOpacity onPress={resetFilters} style={styles.resetButton}>
-              <Text style={styles.resetButtonText}>Show all items</Text>
+              <Text style={styles.resetButtonText}>Reset Filters</Text>
             </TouchableOpacity>
           </View>
         }
@@ -183,31 +139,16 @@ const FoodScreen = () => {
             {item.image && (
               <Image source={{ uri: item.image }} style={styles.foodImage} />
             )}
+
             <View style={styles.foodDetails}>
-              <View style={styles.foodHeader}>
-                <Text style={styles.foodName}>{item.name}</Text>
+              <View style={styles.namePriceContainer}>
+                <Text style={styles.foodName} numberOfLines={1}>{item.name}</Text>
                 <Text style={styles.foodPrice}>৳{item.price}</Text>
               </View>
-              <Text style={styles.foodCategory}>{item.category}</Text>
+
               {!item.available && (
-                <Text style={styles.unavailableText}>Currently unavailable</Text>
+                <Text style={styles.unavailableText}>Unavailable</Text>
               )}
-            </View>
-            <View style={styles.actionButtons}>
-              <TouchableOpacity onPress={() => toggleFavorite(item._id)}>
-                {favorites.includes(item._id) ? (
-                  <Text style={styles.favoriteIcon}>❤️</Text>
-                ) : (
-                  <Text style={styles.favoriteIcon}>🤍</Text>
-                )}
-              </TouchableOpacity>
-              <TouchableOpacity
-                // onPress={() => handleAddToCart(item)}
-                disabled={!item.available}
-                style={[styles.cartButton, !item.available && styles.disabledButton]}
-              >
-                <Text style={styles.cartButtonText}>Add to Cart</Text>
-              </TouchableOpacity>
             </View>
           </View>
         )}
@@ -219,91 +160,93 @@ const FoodScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: 'white',
+    paddingHorizontal: 8,
   },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  filterContainer: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
+  searchContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#fff',
   },
-  filterTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
+  searchInput: {
+    flex: 1,
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    marginRight: 8,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+    padding: 5
   },
-  clearButton: {
-    position: 'absolute',
-    right: 16,
-    top: 16,
-    backgroundColor: '#f0f0f0',
-    padding: 4,
-    borderRadius: 4,
+  searchButton: {
+    backgroundColor: '#00b894',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  clearButtonText: {
-    color: 'red',
+  searchButtonText: {
+    color: '#fff',
+    fontWeight: '500',
+  },
+  filterSection: {
+    paddingVertical: 12,
+    backgroundColor: '#fff',
+    marginBottom: 8,
+    paddingHorizontal: 16,
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginTop: 8,
+    fontSize: 16,
+    fontWeight: '600',
     marginBottom: 8,
+    color: '#333',
   },
   categoriesContainer: {
-    flexDirection: 'row',
-    paddingBottom: 8,
+    paddingRight: 16,
   },
   categoryButton: {
-    padding: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     marginRight: 8,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#f9fafb',
+    borderRadius: 20,
+    backgroundColor: '#f2f2f2',
   },
   selectedCategory: {
-    backgroundColor: '#000',
-    borderColor: '#000',
+    backgroundColor: '#00b894',
   },
   categoryText: {
     fontSize: 14,
-    color: '#4b5563',
+    color: '#666',
   },
   selectedCategoryText: {
     color: '#fff',
   },
-  priceListContainer: {
-    paddingBottom: 8,
-  },
-  priceButton: {
-    padding: 8,
-    marginRight: 8,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#f9fafb',
-  },
-  selectedPriceButton: {
-    backgroundColor: '#000',
-    borderColor: '#000',
-  },
-  priceText: {
-    fontSize: 14,
-    color: '#4b5563',
-  },
-  selectedPriceText: {
-    color: '#fff',
-  },
   itemCount: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 16,
+    fontSize: 14,
+    color: '#666',
+    marginVertical: 12,
+    paddingLeft: 8,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 40,
   },
   emptyText: {
     fontSize: 16,
@@ -311,69 +254,87 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   resetButton: {
-    backgroundColor: 'black',
-    padding: 12,
-    borderRadius: 4,
+    backgroundColor: '#000',
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 20,
   },
   resetButtonText: {
-    color: 'white',
+    color: '#fff',
     fontSize: 14,
+    fontWeight: '500',
+  },
+  columnWrapper: {
+    justifyContent: 'space-between',
+    marginBottom: CARD_MARGIN,
   },
   foodCard: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    marginBottom: 16,
+    width: CARD_WIDTH,
+    backgroundColor: '#fff',
+    borderRadius: 12,
     overflow: 'hidden',
+    marginRight: CARD_MARGIN,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  favoriteButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    zIndex: 1,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    borderRadius: 20,
+    padding: 4,
+  },
+  favoriteIcon: {
+    fontSize: 20,
   },
   foodImage: {
     width: '100%',
-    height: 200,
+    height: CARD_WIDTH * 0.8,
+    resizeMode: 'cover',
   },
   foodDetails: {
-    padding: 16,
+    padding: 12,
   },
-  foodHeader: {
+  namePriceContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    alignItems: 'center',
+    marginBottom: 4,
   },
   foodName: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    flex: 1,
+    marginRight: 8,
   },
   foodPrice: {
     fontSize: 16,
-    fontWeight: 'bold',
-  },
-  foodCategory: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 8,
+    fontWeight: '700',
+    color: '#000',
   },
   unavailableText: {
     fontSize: 12,
     color: 'red',
   },
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    paddingTop: 0,
-  },
-  favoriteIcon: {
-    fontSize: 24,
-  },
   cartButton: {
     backgroundColor: '#000',
-    padding: 8,
-    borderRadius: 4,
+    paddingVertical: 8,
+    borderRadius: 6,
+    alignItems: 'center',
   },
   disabledButton: {
     backgroundColor: '#ccc',
   },
   cartButtonText: {
-    color: 'white',
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
 

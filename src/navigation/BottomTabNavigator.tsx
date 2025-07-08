@@ -15,19 +15,20 @@ const BottomTabNavigator = () => {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: '#007AFF',
+        tabBarActiveTintColor: '#00b894',
         tabBarInactiveTintColor: '#333',
         tabBarStyle: {
           backgroundColor: 'white',
-          borderTopWidth: 0,
-          elevation: 8,
-          shadowColor: '#000',
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          shadowOffset: {
-            width: 0,
-            height: -3, // Negative value will place shadow above the tab bar
-          },
+
+          // borderTopWidth: 0,
+          // elevation: 8,
+          // shadowColor: '#000',
+          // shadowOpacity: 0.1,
+          // shadowRadius: 4,
+          // shadowOffset: {
+          //   width: 0,
+          //   height: -3,
+          // },
         },
         headerShown: false,
       }}
