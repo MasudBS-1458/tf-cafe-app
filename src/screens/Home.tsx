@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { AppDispatch, RootState } from '../redux/store';
 import { useDispatch, useSelector } from 'react-redux';
+import FoodScreen from './foods/FoodScreen';
 
 
 
@@ -19,12 +20,7 @@ const HomeScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Welcome to TR-Cafe</Text>
-
-        </View>
-      </ScrollView>
+      <FoodScreen />
     </SafeAreaView>
   );
 };
