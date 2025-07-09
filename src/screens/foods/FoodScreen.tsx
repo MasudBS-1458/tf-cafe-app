@@ -4,6 +4,8 @@ import { useGetFoodsQuery } from '../../redux/reducers/foods/foodApi';
 import { setFilters } from '../../redux/reducers/foods/foodSlice';
 import { AppDispatch, RootState } from '../../redux/store';
 import { useDispatch, useSelector } from 'react-redux';
+import { addToCartAndPersist } from '../../redux/reducers/carts/cartsSlice';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const { width } = Dimensions.get('window');
 const CARD_MARGIN = 8;
@@ -51,6 +53,11 @@ const FoodScreen = () => {
       prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
     );
   };
+
+  const handleAddToCart = (foodItem: any) => {
+    dispatch(addToCartAndPersist(foodItem));
+  };
+
 
   if (isLoading) {
     return (
@@ -136,9 +143,23 @@ const FoodScreen = () => {
         }
         renderItem={({ item }) => (
           <View style={styles.foodCard}>
-            {item.image && (
-              <Image source={{ uri: item.image }} style={styles.foodImage} />
-            )}
+            {/* Image Container with Cart Button */}
+            <View style={styles.imageContainer}>
+              {item.image && (
+                <Image source={{ uri: item.image }} style={styles.foodImage} />
+              )}
+              <TouchableOpacity
+                style={styles.cartButton}
+                onPress={() => handleAddToCart(item)}
+                disabled={!item.available}
+              >
+                <Icon
+                  name="shopping-cart"
+                  size={20}
+                  color="#fff"
+                />
+              </TouchableOpacity>
+            </View>
 
             <View style={styles.foodDetails}>
               <View style={styles.namePriceContainer}>
@@ -153,10 +174,9 @@ const FoodScreen = () => {
           </View>
         )}
       />
-    </View>
+    </View >
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -219,6 +239,7 @@ const styles = StyleSheet.create({
   categoriesContainer: {
     paddingRight: 16,
   },
+
   categoryButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -242,6 +263,15 @@ const styles = StyleSheet.create({
     marginVertical: 12,
     paddingLeft: 8,
   },
+  imageContainer: {
+    position: 'relative',
+  },
+  foodImage: {
+    width: '100%',
+    height: CARD_WIDTH * 0.8,
+    resizeMode: 'cover',
+  },
+
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -292,11 +322,7 @@ const styles = StyleSheet.create({
   favoriteIcon: {
     fontSize: 20,
   },
-  foodImage: {
-    width: '100%',
-    height: CARD_WIDTH * 0.8,
-    resizeMode: 'cover',
-  },
+
   foodDetails: {
     padding: 12,
   },
@@ -322,14 +348,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: 'red',
   },
-  cartButton: {
-    backgroundColor: '#000',
-    paddingVertical: 8,
-    borderRadius: 6,
-    alignItems: 'center',
-  },
   disabledButton: {
     backgroundColor: '#ccc',
+  },
+  cartButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#00b894',
+    borderRadius: 20,
+    padding: 6,
+    zIndex: 1,
   },
   cartButtonText: {
     color: '#fff',

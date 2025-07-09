@@ -6,16 +6,19 @@ import logger from "redux-logger";
 import authSlice from "../redux/reducers/auth/authSlice";
 import foodSlice from "../redux/reducers/foods/foodSlice";
 import { foodApi } from '../redux/reducers/foods/foodApi';
+import cartSlice from '../redux/reducers/carts/cartsSlice'
 const persistConfig = {
   key: "authentication",
   storage: AsyncStorage,
   version: 1,
+  whitelist: ['registeredEmail', 'user', 'token', 'isOtpSent', 'isOtpVerified']
 };
 const persistedReducer = persistReducer(persistConfig, authSlice);
 const combinedReducer = {
   user: persistedReducer,
   foods: foodSlice,
   [foodApi.reducerPath]: foodApi.reducer,
+  carts: cartSlice,
 };
 const middlewares: any[] = [];
 if (process.env.NODE_ENV === "development") {

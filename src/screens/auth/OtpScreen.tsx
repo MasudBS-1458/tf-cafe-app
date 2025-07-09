@@ -17,19 +17,35 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../types/navigationTypes';
-import { useDispatch } from 'react-redux';
-import { AppDispatch } from '../../redux/store';
-import { clearOtpVerifiedState } from '../../redux/reducers/auth/authSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../../redux/store';
+import { clearOtpVerifiedState, verifyOtp } from '../../redux/reducers/auth/authSlice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const OtpScreen: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const dispatch = useDispatch<AppDispatch>();
+  const { isOtpVerified, errorMessage } = useSelector((state: RootState) => state.user);
   const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
   const [timer, setTimer] = useState<number>(60);
   const [isResendDisabled, setIsResendDisabled] = useState<boolean>(true);
+  const [email, setEmail] = useState<string>('');
   const inputRefs = useRef<Array<RNTextInput | null>>([]);
 
-  // OTP resend timer
+  // Check if all OTP digits are entered
+  const isOtpComplete = otp.every(digit => digit !== '');
+
+  // Get email from AsyncStorage and setup timer
   useEffect(() => {
+    const getEmail = async () => {
+      const storedEmail = await AsyncStorage.getItem('otpVerificationEmail');
+      if (storedEmail) {
+        setEmail(storedEmail);
+      }
+    };
+
+    getEmail();
+
     let interval: NodeJS.Timeout;
     if (timer > 0 && isResendDisabled) {
       interval = setInterval(() => setTimer(prev => prev - 1), 1000);
@@ -40,20 +56,30 @@ const OtpScreen: React.FC = () => {
     return () => clearInterval(interval);
   }, [timer, isResendDisabled]);
 
-
+  // Handle OTP verification response
+  useEffect(() => {
+    if (isOtpVerified === 'succeeded') {
+      navigation.navigate('Login');
+      dispatch(clearOtpVerifiedState());
+    } else if (isOtpVerified === 'failed' && errorMessage) {
+      Alert.alert('Error', errorMessage);
+    }
+  }, [isOtpVerified, errorMessage]);
 
   const handleOtpChange = (text: string, index: number) => {
+    // Only allow numbers
+    const numericText = text.replace(/[^0-9]/g, '');
+
     const newOtp = [...otp];
-    newOtp[index] = text;
+    newOtp[index] = numericText;
     setOtp(newOtp);
 
-    if (text && index < 5) {
+    if (numericText && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
 
-    if (text && index === 5) {
+    if (numericText && index === 5) {
       Keyboard.dismiss();
-      handleVerify();
     }
   };
 
@@ -67,7 +93,14 @@ const OtpScreen: React.FC = () => {
   };
 
   const handleVerify = () => {
+    if (!isOtpComplete) return;
+
     const enteredOtp = otp.join('');
+    if (email) {
+      dispatch(verifyOtp({ email, otp: enteredOtp }));
+    } else {
+      Alert.alert('Error', 'Email not found. Please try registering again.');
+    }
   };
 
   const handleResendOtp = () => {
@@ -75,17 +108,20 @@ const OtpScreen: React.FC = () => {
     setIsResendDisabled(true);
     setOtp(['', '', '', '', '', '']);
     inputRefs.current[0]?.focus();
-    Alert.alert('OTP Sent', 'A new OTP has been sent to your phone');
+    // Here you would typically call your API to resend OTP
+    Alert.alert('OTP Sent', 'A new OTP has been sent to your email');
   };
+
   const handleGoBack = () => {
-    dispatch(clearOtpVerifiedState())
-    navigation.navigate('Register')
-  }
+    dispatch(clearOtpVerifiedState());
+    navigation.navigate('Register');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleGoBack}>
-          <Text >Go Back</Text>
+          <Text>Go Back</Text>
         </TouchableOpacity>
         <View style={{ width: 24 }} />
       </View>
@@ -93,14 +129,15 @@ const OtpScreen: React.FC = () => {
       <View style={styles.content}>
         <Text style={styles.title}>Enter Verification Code</Text>
         <Text style={styles.subtitle}>
-          We've sent a 6-digit code to
+          We've sent a 6-digit code to{' '}
+          <Text style={styles.emailText}>{email}</Text>
         </Text>
 
         <View style={styles.otpContainer}>
           {[0, 1, 2, 3, 4, 5].map((index) => (
             <TextInput
               key={index}
-              // ref={(ref) => (inputRefs.current[index] = ref)}
+              ref={(ref) => (inputRefs.current[index] = ref)}
               style={styles.otpInput}
               keyboardType="number-pad"
               maxLength={1}
@@ -113,8 +150,18 @@ const OtpScreen: React.FC = () => {
           ))}
         </View>
 
-        <TouchableOpacity style={styles.verifyButton} onPress={handleVerify} activeOpacity={0.8}>
-          <Text style={styles.verifyButtonText}>Verify</Text>
+        <TouchableOpacity
+          style={[
+            styles.verifyButton,
+            { backgroundColor: isOtpComplete ? '#00b894' : '#cccccc' }
+          ]}
+          onPress={handleVerify}
+          activeOpacity={0.8}
+          disabled={!isOtpComplete || isOtpVerified === 'loading'}
+        >
+          <Text style={styles.verifyButtonText}>
+            {isOtpVerified === 'loading' ? 'Verifying...' : 'Verify'}
+          </Text>
         </TouchableOpacity>
 
         <View style={styles.resendContainer}>
@@ -162,6 +209,9 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     textAlign: 'left',
   },
+  emailText: {
+    color: '#00b894'
+  },
   otpContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -179,7 +229,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   verifyButton: {
-    backgroundColor: '#00b894',
     padding: 15,
     borderRadius: 10,
     width: '100%',
