@@ -5,6 +5,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import HomeScreen from '../screens/Home';
 import CartScreen from '../screens/cart/CartScreen';
 import ProfileScreen from '../screens/user/ProfileScreen';
+import { RootState } from '../redux/store';
+import { useSelector } from 'react-redux';
 
 export type BottomTabParamList = {
   Home: undefined;
@@ -15,6 +17,7 @@ export type BottomTabParamList = {
 const Tab = createBottomTabNavigator<BottomTabParamList>();
 
 const BottomTabNavigator = () => {
+  const { totalQuantity } = useSelector((state: RootState) => state.carts);
   return (
     <Tab.Navigator
       screenOptions={{
@@ -47,7 +50,7 @@ const BottomTabNavigator = () => {
           tabBarIcon: () => (
             <Feather name="shopping-cart" size={24} color="black" />
           ),
-          tabBarBadge: 3,
+          tabBarBadge: totalQuantity > 0 ? totalQuantity : undefined,
         }}
       />
       <Tab.Screen
