@@ -10,6 +10,7 @@ const persistConfig = {
   key: "authentication",
   storage: AsyncStorage,
   version: 1,
+  whitelist: ['registeredEmail', 'user', 'token', 'isOtpSent', 'isOtpVerified']
 };
 const persistedReducer = persistReducer(persistConfig, authSlice);
 const combinedReducer = {
