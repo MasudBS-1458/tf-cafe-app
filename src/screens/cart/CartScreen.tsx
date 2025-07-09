@@ -27,7 +27,11 @@ const CartScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scrollContainer}
+      showsVerticalScrollIndicator={false}
+    >
       {items.length === 0 ? (
         <View style={styles.emptyCartContainer}>
           <View style={styles.emptyCartIcon}>
@@ -44,11 +48,11 @@ const CartScreen = () => {
           </TouchableOpacity>
         </View>
       ) : (
-        <View style={styles.mainContainer}>
+        <View style={styles.contentContainer}>
           {/* Cart Items Section */}
-          <View style={styles.cartSection}>
+          <View style={styles.cartItemsContainer}>
             <View style={styles.cartHeader}>
-              <Text style={styles.cartTitle}>Your Cart ({totalQuantity})</Text>
+              <Text style={styles.cartTitle}>Cart</Text>
               <TouchableOpacity
                 onPress={() => dispatch(clearCart())}
                 style={styles.clearAllButton}
@@ -58,11 +62,7 @@ const CartScreen = () => {
               </TouchableOpacity>
             </View>
 
-            <ScrollView
-              style={styles.itemsScrollView}
-              contentContainerStyle={styles.scrollContent}
-              showsVerticalScrollIndicator={false}
-            >
+            <View style={styles.itemsList}>
               {items.map(item => (
                 <View key={item._id} style={styles.cartItem}>
                   <View style={styles.itemImageContainer}>
@@ -117,7 +117,7 @@ const CartScreen = () => {
                   </View>
                 </View>
               ))}
-            </ScrollView>
+            </View>
           </View>
 
           {/* Order Summary Section */}
@@ -149,7 +149,6 @@ const CartScreen = () => {
             <TouchableOpacity
               style={styles.checkoutButton}
               activeOpacity={0.7}
-              onPress={() => navigation.navigate('Checkout')}
             >
               <Text style={styles.checkoutText}>Proceed to Checkout</Text>
               <Icon name="arrow-right" size={16} color="#ffffff" />
@@ -163,20 +162,25 @@ const CartScreen = () => {
           </View>
         </View>
       )}
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#ffffff',
+  },
+  scrollContainer: {
+    flexGrow: 1,
   },
   emptyCartContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    backgroundColor: '#ffffff',
+    minHeight: '100%',
   },
   emptyCartIcon: {
     width: 100,
@@ -211,19 +215,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
   },
-  mainContainer: {
+  contentContainer: {
     flex: 1,
+    backgroundColor: '#ffffff',
   },
-  cartSection: {
-    flex: 1,
-    padding: 16,
+  cartItemsContainer: {
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
   cartHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
-  },
+    paddingHorizontal: 8,
+    // borderBottomWidth: 1,
+    // borderBottomColor: '#ccc',
+    paddingBottom: 8,
+  }
+  ,
   cartTitle: {
     fontSize: 20,
     fontWeight: '600',
@@ -237,10 +248,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-  itemsScrollView: {
-    flex: 1,
-  },
-  scrollContent: {
+  itemsList: {
     paddingBottom: 20,
   },
   cartItem: {
@@ -259,7 +267,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 8,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#ffffff',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -334,11 +342,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
+    margin: 8,
   },
   summaryTitle: {
     fontSize: 18,
